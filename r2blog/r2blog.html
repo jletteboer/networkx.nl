@@ -1,0 +1,85 @@
+<p>In a couple of courses I&#39;ve used <a href="http://www.rpubs.com/">RPubs</a> and <a href="https://github.com/">GitHub</a> for publishing my <a href="https://www.r-project.org/">R</a> code and work. As I have a own website with <a href="https://wordpress.org/">Wordpress</a> I want to blog from R to my own blog instead only through sharing R code via RPubs and GitHub. After searching over the internet I find some usefull stuff to do this. So let&#39;s try it myself en let this be my first blog post created from <a href="https://www.rstudio.com/">Rstudio</a> to Wordpress.</p>
+
+<h3>Setting up Wordpress and R</h3>
+
+<h5>What do we need for wordpress:</h5>
+
+<ul>
+<li><a href="https://nl.wordpress.org/plugins/crayon-syntax-highlighter/">Crayon Syntax Highlighter</a> plugin for highlighting R code in a blog post.<br/></li>
+<li><a href="https://nl.wordpress.org/plugins/wp-quicklatex/">WP QuickLaTeX</a> for nice math rendering using $L<sup>AT_EX$</sup> syntax.<br/></li>
+</ul>
+
+<h5>And in R we need:</h5>
+
+<ul>
+<li><a href="http://yihui.name/knitr/">knitr</a>, a website is coded in HTML, <code>knitr</code> can convert your R code from a <a href="http://rmarkdown.rstudio.com/">R Markdown</a> file to HTML code.this package is already installed with RStudio.<br/></li>
+<li><a href="http://yihui.name/knitr/demo/wordpress/">RWordPress</a> allows publish blog posts from R to WordPress.<br/></li>
+</ul>
+
+<h5>Load the necessary packages in R</h5>
+
+<pre class="lang:r decode:true">if (!require(&#39;RWordPress&#39;))
+  install.packages(&#39;RWordPress&#39;, repos = &#39;http://www.omegahat.org/R&#39;, type = &#39;source&#39;)
+library(RWordPress)
+library(knitr)
+</pre>
+
+<p>Setting options for RWordPess</p>
+
+<pre class="lang:r decode:true">#options(WordpressLogin=c(your_username=&#39;your_password&#39;),
+#        WordpressURL=&#39;http://your.blog.com/xmlrpc.php&#39;)
+</pre>
+
+<h5>Syntax highlighting with Crayon Syntax Highlighter</h5>
+
+<p>To make syntax highlighting work in WordPress with the Crayon Syntax Highlighter plugin. R code should be enclosed in WordPress-shortcode instead of the knitr html output default <pre class="lang:r decode:true">...</pre> to <pre class="lang:r decode:true">...</pre>. We can&#39;t do that with the default knitr2wp function of knitr. <code>knitr2wp</code> is only based on the syntax which is used for <a href="https://wordpress.org/plugins/syntaxhighlighter/">SyntaxHighlighter</a>. I don&#39;t want to update all my other code on my blog.</p>
+
+<p>For the Crayon Syntax Highlighter I&#39;ve found a <a href="http://git.leg.ufpr.br/leg/legTools/commit/4e76bb02f76cbf9f11b3ddaedd73421536bc94ac">request</a> of allowing proper code highlight when using Crayon. Below the copied requested function for using it to post a blog  to my Wordpress site with Crayon Syntax Highlighter as code highlighter.</p>
+
+<pre class="lang:r decode:true">knit2wpCrayon &lt;- function(input, title=&quot;A post from knitr&quot;, ...,
+                          action=c(&quot;newPost&quot;, &quot;editPost&quot;, &quot;newPage&quot;),
+                          postid, encoding=getOption(&quot;encoding&quot;),
+                          upload=FALSE, publish=FALSE, write=TRUE)
+{
+    out &lt;- knit(input, encoding=encoding)
+    on.exit(unlink(out))
+    con &lt;- file(out, encoding=encoding)
+    on.exit(close(con), add=TRUE)
+    content &lt;- knitr:::native_encode(readLines(con, warn=FALSE))
+    content &lt;- paste(content, collapse=&quot;\n&quot;)
+    content &lt;- markdown::markdownToHTML(text=content, fragment.only=TRUE)
+    content &lt;- gsub(&quot;&lt;pre&gt;&lt;code class=\&quot;([[:alpha:]]+)\&quot;&gt;(.+?)&lt;/code&gt;&lt;/pre&gt;&quot;,
+                    &quot;&lt;pre class=\&quot;lang:\\1 decode:true\&quot;&gt;\\2&lt;/pre&gt;&quot;,
+                    content)
+    content=knitr:::native_encode(content, &quot;UTF-8&quot;)
+    title=knitr:::native_encode(title, &quot;UTF-8&quot;)
+    if (write){
+        writeLines(text=content,
+                   con=gsub(x=out, pattern=&quot;\\.md$&quot;, replacement=&quot;.html&quot;))
+    }
+    if (upload){
+        action=match.arg(action)
+        WPargs=list(content=list(description=content, title=title, 
+                                 ...), publish=publish)
+        if (action==&quot;editPost&quot;) 
+            WPargs=c(postid=postid, WPargs)
+        do.call(&quot;library&quot;, list(package=&quot;RWordPress&quot;, character.only=TRUE))
+        print(do.call(action, args=WPargs))
+    }
+}
+</pre>
+
+<p>After adding the function into R we can post our first blog on Wordpress and that would be this one :). </p>
+
+<p><strong>Note:</strong> Below code should run directly from the R shell (first create the above function) after the R Markdown has created and has runs once. It will post a lots same drafts and ends with a error. I cannot figure out why, I think there is a loop and it wants to post itself to your blog. If you want to upload it run it directly from the R shell with the upload option to <code>TRUE</code>.</p>
+
+<pre class="lang:r decode:true">#knit2wpCrayon(&quot;r2blog.Rmd&quot;, 
+#        title = &quot;Create blog posts from RStudio to Wordpress&quot;,
+#        categories = c(&quot;R&quot;, &quot;Programming&quot;), 
+#        publish = FALSE, upload = FALSE)
+</pre>
+
+<p>I set the publish option to <code>FALSE</code>, so the post will stay in draft mode and I can fine tune some formats, tags, set a featured image and add on the top the shortcode <code>[latexpage]</code> for using $L<sup>AT_EX$</sup> syntax. </p>
+
+<p>This code can also be find on my [GitHub]</p>
+
