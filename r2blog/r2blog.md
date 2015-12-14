@@ -1,13 +1,6 @@
----
-title: "Create blog posts from RStudio to Wordpress"
-author: "John Letteboer"
-date: "12/14/2015"
-output: 
-  html_document: 
-    fig_caption: yes
-    keep_md: yes
-    theme: cosmo
----
+# Create blog posts from RStudio to Wordpress
+John Letteboer  
+12/14/2015  
 
 In a couple of courses I've used [RPubs](http://www.rpubs.com/) and [GitHub](https://github.com/) for publishing my [R](https://www.r-project.org/) code and work. As I have a own website with [Wordpress](https://wordpress.org/) I want to blog from R to my own blog instead only through sharing R code via RPubs and GitHub. After searching over the internet I find some usefull stuff to do this. So let's try it myself en let this be my first blog post created from [Rstudio](https://www.rstudio.com/) to Wordpress.
 
@@ -21,15 +14,24 @@ In a couple of courses I've used [RPubs](http://www.rpubs.com/) and [GitHub](htt
 - [RWordPress](http://yihui.name/knitr/demo/wordpress/) allows publish blog posts from R to WordPress.  
 
 ##### Load the necessary packages in R
-```{r}
+
+```r
 if (!require('RWordPress'))
   install.packages('RWordPress', repos = 'http://www.omegahat.org/R', type = 'source')
+```
+
+```
+## Loading required package: RWordPress
+```
+
+```r
 library(RWordPress)
 library(knitr)
 ```
 
 Setting options for RWordPess
-```{r}
+
+```r
 options(WordpressLogin=c(your_username='your_password'),
         WordpressURL='http://your.blog.com/xmlrpc.php')
 ```
@@ -47,7 +49,8 @@ to
 We can't do that with the default knitr2wp function of knitr. `knitr2wp` is only based on the syntax which is used for [SyntaxHighlighter](https://wordpress.org/plugins/syntaxhighlighter/). I don't want to update all my other code on my blog.
 
 For the Crayon Syntax Highlighter I've found a [request](http://git.leg.ufpr.br/leg/legTools/commit/4e76bb02f76cbf9f11b3ddaedd73421536bc94ac) of allowing proper code highlight when using Crayon. Below the copied requested function for using it to post a blog  to my Wordpress site with Crayon Syntax Highlighter as code highlighter.
-```{r}
+
+```r
 knit2wpCrayon <- function(input, title="A post from knitr", ...,
                           action=c("newPost", "editPost", "newPage"),
                           postid, encoding=getOption("encoding"),
@@ -87,7 +90,8 @@ After adding the function into R we can post our first blog on Wordpress and tha
 
 **Note:** Below code should run directly from the R shell (first create the above function and load the RWordPress library) after the R Markdown has created and has runs once. It will post a lots same drafts and ends with a error. I cannot figure out why, I think there is a loop and it wants to post itself to your blog. If you want to upload it run it directly from the R shell with the upload option to `TRUE`.
 
-```{r}
+
+```r
 #knit2wpCrayon("r2blog.Rmd", 
 #        title = "Create blog posts from RStudio to Wordpress",
 #        categories = c("R", "Programming"), 
