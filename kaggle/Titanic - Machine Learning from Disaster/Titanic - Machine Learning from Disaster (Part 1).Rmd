@@ -1,0 +1,209 @@
+---
+title: "Titanic - Machine Learning from Disaster (Part 1)"
+author: "John Letteboer"
+date: "2/17/2016"
+output: 
+  html_document: 
+    fig_caption: yes
+    keep_md: yes
+    theme: spacelab
+    toc: yes
+---
+## Synopsis
+In the challenge [Titanic - Machine Learning from Disaster](https://www.kaggle.com/c/titanic) from [Kaggle](https://www.kaggle.com), you need to predict of what kind of people were likely to survive the disaster or did not. In particular, they ask to apply the tools of machine learning to predict which passengers survived the tragedy.
+
+I've split this up into two seperate parts.
+
+**Part 1 - Data Exploration and basic Model Building**   
+Part 2 - Creating own variables   
+
+## Data Exploration
+I've download the train and test data from [Kaggle](https://www.kaggle.com/c/titanic/data). At this page you could also find the variable descriptions.  
+
+Import the training and testing set into R.
+```{r}
+train <- read.csv("train.csv")
+test <- read.csv("test.csv")
+```
+
+Let's have a look at the data.
+```{r}
+summary(train)
+
+head(train,2)
+head(test,2)
+
+dim(train)
+dim(test)
+
+str(train)
+str(test)
+```
+
+The training set has **`r dim(train)[1]`** observations and **`r dim(train)[2]`** variables and the testing set has **`r dim(test)[1]`** observations and **`r dim(test)[2]`** variables. The traning set has **`r dim(train)[2] - dim(test)[2]`** extra varible. Check which which one we are missing. I know we could see that in a very small dataset like this, but if its larger we want two compare them.
+
+```{r}
+colnames_check <- colnames(train) %in% colnames(test)
+colnames(train[colnames_check==FALSE])
+```
+
+As we can see we are missing the ``r colnames(train[colnames_check==FALSE])`` in the test set. Which is correct because thats our challenge, we must predict this by creating a model.
+
+Let's look deeper into the training set, and check how many passengers that survived vs did not make it.
+```{r}
+table(train$Survived) 
+```
+
+Hmm oke, of the **`r dim(train)[1]`** there are only **`r table(train$Survived)[2]`** who survived it. Check also as proportions.
+```{r}
+prop.table(table(train$Survived))
+```
+
+A little more than one-third of the passengers survived the disaster. Now see if there is a difference between males and females that survived vs males that passed away.
+```{r}
+table(train$Sex, train$Survived)
+prop.table(table(train$Sex, train$Survived),margin = 1)
+```
+
+As we can see most of the female survived and most of the male did not make it.
+
+## Model Building
+After doing some exploratory analysis of the data, let's do some first prediction before getting deeper into the data.
+
+### First prediction - All Female Survived
+Create a copy of `test` to `test_female`, Initialize a `Survived` column to 0 and Set `Survived` to 1 if `Sex` equals "female"
+```{r}
+test_female <- test
+test_female$Survived <- 0
+test_female$Survived[test_female$Sex == "female"] <- 1
+```
+
+Create a data frame with two columns: PassengerId & Survived and write the solution away to a csv file.
+```{r}
+my_solution <- data.frame(PassengerId = test_female$PassengerId, Survived = test_female$Survived)
+write.csv(my_solution, file =  "all_female.csv", row.names = FALSE)
+```
+
+That's our first submission to Kaggle and it's good for a score of **0.76555**. That's not so bad, but we want more!! :)
+
+### Clean up the dataset
+Now we need to clean the dataset to create our models. Note that it is important to explore the data so that we understand what elements need to be cleaned.
+For example we have noticed that there are missing values in the data set, especially in the `Age` column of the training set. Show which columns have missing values in the training and test set.
+
+```{r}
+colSums(is.na(train))
+colSums(is.na(test))
+```
+
+As we can see we have missing values in `Age` in the training set and `Age`, `Fare` in the test set.
+
+To tackle the missing values I'm going to predict the missing values with the full data set. First we need to combine the test and training set together.
+```{r}
+train2 <- train
+test2 <- test
+test2$Survived <- NA
+full <- rbind(train2, test2)
+```
+
+First we tackle the missing `Fare`, because this is only one value. Let see in wich row it's missing. 
+```{r}
+full[!complete.cases(full$Fare),]
+```
+
+As we can see the passenger on row 1044 has an NA Fare value. Let's replace it with the median fare value.
+```{r}
+full$Fare[1044] <- median(full$Fare, na.rm = TRUE)
+```
+
+How to fill in missing `Age` values? We make a prediction of a passengers Age using the other variables and a decision tree model. 
+This time we give method = "anova" since you are predicting a continuous variable.
+```{r}
+library(rpart)
+predicted_age <- rpart(Age ~ Pclass + Sex + SibSp + Parch + Fare + Embarked,
+                       data = full[!is.na(full$Age),], method = "anova")
+full$Age[is.na(full$Age)] <- predict(predicted_age, full[is.na(full$Age),])
+```
+
+We know that the training set has 891 observations and the test set 418, we can split the data back into a train set and a test set. 
+```{r}
+train2 <- full[1:891,]
+test2 <- full[892:1309,]
+```
+
+### Build a Decision Tree with rpart
+Build the decision tree with rpart to predict `Survived` with the variables `Pclass`, `Sex`, `Age`, `SibSp`, `Parch`, `Fare` and `Embarked`.
+```{r}
+my_dt1 <- rpart(Survived ~ Pclass + Sex + Age + SibSp + Parch + Fare + Embarked, 
+                     data = train2, 
+                     method = "class")
+```
+
+Load in the packages to create a fancified visualized version of your tree.
+```{r message=FALSE}
+library(rattle)
+library(rpart.plot)
+library(RColorBrewer)
+```
+
+Visualize the decision tree using fancy tree of rpart.
+```{r}
+fancyRpartPlot(my_dt1)
+
+```
+
+From the top we can see that the node is voting 0, so at this level everyone would die. Below that we see that 62% of passengers die, while 38% survive (the most will die here that's why the node is voting that everyone die). If we go down to the male/female 81%/26% will die and 19%/74% will survive as the proportions exactly match those we find earlier. Let's see the proportions again rounded with two decimals.
+
+```{r}
+round(prop.table(table(train2$Survived)),2)
+round(prop.table(table(train2$Sex, train2$Survived),margin = 1),2)
+```
+
+That are the same number's :)
+
+Make the prediction using the test2 set.
+```{r}
+my_prediction <- predict(my_dt1, newdata = test2, type = "class")
+```
+
+Create a data frame with two columns: PassengerId & Survived. Survived contains your predictions.
+```{r}
+my_solution <- data.frame(PassengerId = test2$PassengerId, Survived = my_prediction)
+```
+
+Check that your data frame has 418 entries.
+```{r}
+nrow(my_solution)
+```
+
+Write your solution to a csv file with the name my_dt1.csv.
+```{r}
+write.csv(my_solution, file =  "my_dt1.csv", row.names = FALSE)
+```
+
+This gives u a score of **0.77512**, this is a little better than our first submission.
+
+Create a new decision tree `my_dt2` with some control aspects. The aspects are `cp` for splitting up of the decision tree stops and `minsplit` for the amount of observations in a bucket.
+```{r}
+my_dt2 <- rpart(Survived ~ Pclass + Sex + Age + SibSp + Parch + Fare + Embarked, 
+                       data = train2, 
+                       method = "class",
+                       control = rpart.control(minsplit = 50, cp = 0))
+```
+
+Visualize your new decision tree.
+```{r}
+fancyRpartPlot(my_dt2)
+```
+
+Make the prediction using the `test2`, create the two column dataset, check the amount of rows and save it to `my_dt2.csv`.
+```{r}
+my_prediction <- predict(my_dt2, newdata = test2, type = "class")
+my_solution <- data.frame(PassengerId = test2$PassengerId, Survived = my_prediction)
+nrow(my_solution)
+write.csv(my_solution, file =  "my_dt2.csv", row.names = FALSE)
+```
+
+This will gives us a score of **0.74163**. Oke this is not an improvement.  
+
+In part two I will create my own variables for making a model.
+
