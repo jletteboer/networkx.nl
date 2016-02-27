@@ -1,0 +1,58 @@
+<h2>Synopsis</h2>
+
+<p><strong>Note! This post is a addition to <a href="http://www.networkx.nl/programming/create-blog-posts-from-rstudio-to-wordpress-39/">Create blog posts from RStudio to WordPress</a></strong></p>
+
+<p>About a week ago I tried to add my blog to <a href="http://www.r-bloggers.com/">R-Bloggers</a>. I thought everything was correct to add it. But this week I got a mail from <a href="http://www.r-statistics.com/about/">Tal Galili</a> (site administrator of R-Bloggers) with the message that my blog uses base64 images in my feed. </p>
+
+<p>This type of images are created, as default option, with knitr as a standalone HTML document. It would be great if I could solve it with PNG instead of base64 images, even better if I could solve it with posting from RStudio to WordPress.</p>
+
+<p>And so I did. In this post I will explain you how to post your WordPress post with PNG files and upload it to your blog.</p>
+
+<h2>How to recognize a base64 image</h2>
+
+<p>Well you can check your RSS feed of your blog and search for <code>data:image/png;base64</code>, it should be something like this (thx Tal for the image :)):</p>
+
+<p><img src="http://www.networkx.nl/wp-content/uploads/2016/02/base64_image.png" alt=""/></p>
+
+<h2>Setting your options</h2>
+
+<p>To upload your PNG files to your blog you need to set some knitr options first.</p>
+
+<p>As I described in my earlier post you had to set your login parameters to login to your WordPress blog. For the upload of files to WordPress you need to set the <code>upload.fun</code> option of <code>knitr</code>. This will take the filename as the input and returns a link to the image in the RMarkdown file.</p>
+
+<p>Let&#39;s set the login parameters and the upload.fun options. I&#39;ve hashed it out because I can not post to the dummy credentials. In the earlier <a href="http://www.networkx.nl/programming/create-blog-posts-from-rstudio-to-wordpress-39/">post</a> you can add the upload.fun option after your login credentials and you are good to go.</p>
+
+<pre class="lang:r decode:true"># Load libraries
+#library(RWordPress)
+#library(knitr)
+
+# Login parameters
+#options(WordpressLogin=c(your_username=&quot;your_password&quot;),
+#        WordpressURL=&quot;http://your.blog.com/xmlrpc.php&quot;)
+
+# Upload your plots as png files to your blog
+#opts_knit$set(upload.fun = function(file){library(RWordPress);uploadFile(file)$url;})
+</pre>
+
+<p>After setting the above credentials your are ready to upload your post with PNG image(s) to your blog. For the completeness I will post a png image in this post I will create within R.</p>
+
+<h2>Example of posting your PNG image</h2>
+
+<pre class="lang:r decode:true">data(iris)
+pairs(iris, col = iris$Species)
+</pre>
+
+<p><img src="http://www.networkx.nl/wp-content/uploads/2016/02/iris-1.png" alt="plot of chunk iris"/> </p>
+
+<p>After this I could start post to my blog with <code>knit2wpCrayon</code>.</p>
+
+<pre class="lang:r decode:true">#knit2wpCrayon(&quot;r2blog_with_png.Rmd&quot;, 
+#        title = &quot;Upload plots as PNG file to your wordpress&quot;,
+#        categories = c(&quot;R&quot;, &quot;Programming&quot;), 
+#        publish = FALSE, upload = TRUE)
+</pre>
+
+<p>Again I hashed it because it could not post itself.</p>
+
+<p>This code can also be find on my <a href="https://github.com/jletteboer/networkx.nl/tree/master/r2blog">GitHub</a>.</p>
+

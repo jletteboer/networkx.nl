@@ -146,7 +146,7 @@ library(RColorBrewer)
 ```
 
 Visualize the decision tree using fancy tree of rpart.
-```{r}
+```{r label='my_dt1'}
 fancyRpartPlot(my_dt1)
 
 ```
@@ -191,7 +191,7 @@ my_dt2 <- rpart(Survived ~ Pclass + Sex + Age + SibSp + Parch + Fare + Embarked,
 ```
 
 Visualize your new decision tree.
-```{r}
+```{r label='my_dt2'}
 fancyRpartPlot(my_dt2)
 ```
 
