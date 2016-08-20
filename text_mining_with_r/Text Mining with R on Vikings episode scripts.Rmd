@@ -7,6 +7,8 @@ output:
     keep_md: yes
     theme: spacelab
 ---
+![vikings](http://www.networkx.nl/wp-content/uploads/2016/07/vikings.png)
+
 ### Synopsis
 I'm a hugh fan of the TV show Vikings. I thought it would be cool to mine the tv shows scripts to figure out which terms are the most used in the show and what the correlations are between the most frequent terms and episodes.
 
@@ -131,7 +133,7 @@ docs <- tm_map(docs, stripWhitespace)
 Let's have a look to our first document.
 
 ```{r}
-#inspect(docs[1])
+inspect(docs[1])
 ```
 
 I have hash it because wordpress has problems with editing the post.

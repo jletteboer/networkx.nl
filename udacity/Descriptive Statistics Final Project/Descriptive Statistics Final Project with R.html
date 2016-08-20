@@ -1,0 +1,186 @@
+<p><a href="https://docs.google.com/document/d/1059JMJ9C5dn7vKUrmfWYle57Ai3Uk9PzxPQBGj5drjE/pub">Source</a></p>
+
+<h4>Overview</h4>
+
+<p>Welcome to the Descriptive Statistics Final Project! In this project, you will demonstrate what you have learned in this course by conducting an experiment dealing with drawing from a deck of playing cards and creating a writeup containing your findings. Be sure to check through the project rubric to self-assess and share with others who will give you feedback.</p>
+
+<h4>Questions for Investigation</h4>
+
+<p>This experiment will require the use of a standard deck of playing cards. This is a deck of fifty-two cards divided into four suits (spades (♠), hearts (<font color="red">♥</font>), diamonds (<font color="red">♦</font>), and clubs (♣)), each suit containing thirteen cards (Ace, numbers 2-10, and face cards Jack, Queen, and King). You can use either a physical deck of cards for this experiment or you may use a virtual deck of cards such as that found on random.org (<a href="http://www.random.org/playing-cards/">http://www.random.org/playing-cards/</a>). For the purposes of this task, assign each card a value: The Ace takes a value of 1, numbered cards take the value printed on the card, and the Jack, Queen, and King each take a value of 10.</p>
+
+<ol>
+<li>First, create a histogram depicting the relative frequencies of the card values.</li>
+<li>Now, we will get samples for a new distribution. To obtain a single sample, shuffle your deck of cards and draw three cards from it. (You will be sampling from the deck without replacement.) Record the cards that you have drawn and the sum of the three cards’ values. Repeat this sampling procedure a total of at least thirty times.</li>
+<li>Let’s take a look at the distribution of the card sums. Report descriptive statistics for the samples you have drawn. Include at least two measures of central tendency and two measures of variability.</li>
+<li>Create a histogram of the sampled card sums you have recorded. Compare its shape to that of the original distribution. How are they different, and can you explain why this is the case?</li>
+<li>Make some estimates about values you will get on future draws. Within what range will you expect approximately 90% of your draw values to fall? What is the approximate probability that you will get a draw value of at least 20? Make sure you justify how you obtained your values.</li>
+</ol>
+
+<h3>Load the libraries</h3>
+
+<pre class="lang:r decode:true">library(ggplot2)
+</pre>
+
+<h3>Create card deck</h3>
+
+<pre class="lang:r decode:true">suits &lt;- c(&quot;D&quot;, &quot;C&quot;, &quot;H&quot;, &quot;S&quot;)
+cards &lt;- c(&quot;A&quot;, as.character(seq(2,10)), &quot;J&quot;, &quot;Q&quot;, &quot;K&quot;)
+values &lt;- c(1, 2:9, rep(10, 4))
+
+# Build deck
+deck &lt;- expand.grid(cards=cards, suits=suits)
+deck$value &lt;- values
+deck
+</pre>
+
+<pre><code>##    cards suits value
+## 1      A     D     1
+## 2      2     D     2
+## 3      3     D     3
+## 4      4     D     4
+## 5      5     D     5
+## 6      6     D     6
+## 7      7     D     7
+## 8      8     D     8
+## 9      9     D     9
+## 10    10     D    10
+## 11     J     D    10
+## 12     Q     D    10
+## 13     K     D    10
+## 14     A     C     1
+## 15     2     C     2
+## 16     3     C     3
+## 17     4     C     4
+## 18     5     C     5
+## 19     6     C     6
+## 20     7     C     7
+## 21     8     C     8
+## 22     9     C     9
+## 23    10     C    10
+## 24     J     C    10
+## 25     Q     C    10
+## 26     K     C    10
+## 27     A     H     1
+## 28     2     H     2
+## 29     3     H     3
+## 30     4     H     4
+## 31     5     H     5
+## 32     6     H     6
+## 33     7     H     7
+## 34     8     H     8
+## 35     9     H     9
+## 36    10     H    10
+## 37     J     H    10
+## 38     Q     H    10
+## 39     K     H    10
+## 40     A     S     1
+## 41     2     S     2
+## 42     3     S     3
+## 43     4     S     4
+## 44     5     S     5
+## 45     6     S     6
+## 46     7     S     7
+## 47     8     S     8
+## 48     9     S     9
+## 49    10     S    10
+## 50     J     S    10
+## 51     Q     S    10
+## 52     K     S    10
+</code></pre>
+
+<h3>1. Create a histogram depicting the relative frequencies of the card values</h3>
+
+<p>First, create a histogram depicting the relative frequencies of the card values.</p>
+
+<pre class="lang:r decode:true">ggplot(deck, aes(x=values)) + 
+    geom_histogram(binwidth=1, origin=-0.5, col=&quot;white&quot;, fill=&quot;royalblue&quot;, alpha=0.5) + 
+    labs(x=&quot;Value&quot;, y=&quot;Count&quot;, title=&quot;Card Value Histogram&quot;) +
+    scale_x_continuous(breaks = seq(1,10)) +
+    theme_bw()
+</pre>
+
+<p><img src="http://www.networkx.nl/wp-content/uploads/2016/08/unnamed-chunk-3-1.png" alt="plot of chunk unnamed-chunk-3"/> </p>
+
+<h3>2. Get samples for a new distribution</h3>
+
+<p>Now, we will get samples for a new distribution. To obtain a single sample, shuffle your deck of cards and draw three cards from it. (You will be sampling from the deck without replacement.) Record the cards that you have drawn and the sum of the three cards’ values. Repeat this sampling procedure a total of at least thirty times.</p>
+
+<pre class="lang:r decode:true">df &lt;- c()
+for (i in 1:5000) {
+    df$value[i] &lt;- sum(sample(deck$value,3,replace = FALSE))
+}
+samples &lt;- data.frame(df)
+</pre>
+
+<h3>3. Report descriptive statistics for the samples</h3>
+
+<p>Let’s take a look at the distribution of the card sums. Report descriptive statistics for the samples you have drawn. Include at least two measures of central tendency and two measures of variability.</p>
+
+<pre class="lang:r decode:true">summary(samples)
+</pre>
+
+<pre><code>##      value      
+##  Min.   : 3.00  
+##  1st Qu.:16.00  
+##  Median :20.00  
+##  Mean   :19.55  
+##  3rd Qu.:23.00  
+##  Max.   :30.00
+</code></pre>
+
+<h3>4. Create a histogram of the sampled card sums you have recorded</h3>
+
+<p>Create a histogram of the sampled card sums you have recorded. Compare its shape to that of the original distribution. How are they different, and can you explain why this is the case?</p>
+
+<pre class="lang:r decode:true">ggplot(samples, aes(x=value)) + 
+    geom_histogram(binwidth=1, origin=-0.5, col=&quot;white&quot;, fill=&quot;royalblue&quot;, alpha=0.5) + 
+    labs(x=&quot;Value&quot;, y=&quot;Count&quot;, title=&quot;3 Card Sum Histogram (n=5000)&quot;) +
+    theme_bw()
+</pre>
+
+<p><img src="http://www.networkx.nl/wp-content/uploads/2016/08/unnamed-chunk-6-1.png" alt="plot of chunk unnamed-chunk-6"/> </p>
+
+<h3>5. Make some estimates about values you will get on future draws</h3>
+
+<p>Make some estimates about values you will get on future draws. Within what range will you expect approximately 90% of your draw values to fall? What is the approximate probability that you will get a draw value of at least 20? Make sure you justify how you obtained your values.</p>
+
+<h4>a. Within what range will you expect approximately 90% of your draw values to fall?</h4>
+
+<pre class="lang:r decode:true">quantile(samples$value, probs = seq(.05, .95, 0.9))
+</pre>
+
+<pre><code>##  5% 95% 
+##  11  28
+</code></pre>
+
+<h4>b. Approximate probability that you will get a draw value of at least 20?</h4>
+
+<p>Calculate the z score</p>
+
+<p>$Z=\frac{X-\mu}{\sigma}$</p>
+
+<pre class="lang:r decode:true">atleast &lt;- 20
+mean &lt;- mean(samples$value)
+sd &lt;- sd(samples$value)
+z &lt;- (atleast-mean)/sd
+z
+</pre>
+
+<pre><code>## [1] 0.08467613
+</code></pre>
+
+<p>We could lookup the value in the <a href="https://s3.amazonaws.com/udacity-hosted-downloads/ZTable.jpg">Z score table</a>, but I want to calculate it.</p>
+
+<p>Convert the Z score to a p-value with the Cumulative Distribution Function. We want to find the probability is larger than the given number so we use the <code>lower.tail=FALSE</code>.</p>
+
+<p>$F(x) = 1 - P(X &lt;= x)$</p>
+
+<pre class="lang:r decode:true">cdf &lt;- pnorm(z, lower.tail=FALSE)
+cdf
+</pre>
+
+<pre><code>## [1] 0.4662594
+</code></pre>
+
+<p>As we can see the probability that we will get a draw value of at least 20 is <strong>0.4662594</strong>.</p>
+

@@ -1,6 +1,8 @@
 # Text Mining with R on Vikings episode scripts
 John Letteboer  
 5 July 2016  
+![vikings](http://www.networkx.nl/wp-content/uploads/2016/07/vikings.png)
+
 ### Synopsis
 I'm a hugh fan of the TV show Vikings. I thought it would be cool to mine the tv shows scripts to figure out which terms are the most used in the show and what the correlations are between the most frequent terms and episodes.
 
@@ -209,7 +211,18 @@ summary(docs)
 
 ```r
 # Inspect the first document, it has 12958 characters
-#inspect(docs[1])
+inspect(docs[1])
+```
+
+```
+## <<VCorpus>>
+## Metadata:  corpus specific: 0, document level (indexed): 0
+## Content:  documents: 1
+## 
+## [[1]]
+## <<PlainTextDocument>>
+## Metadata:  7
+## Content:  chars: 12943
 ```
 
 There is a lot of information in the script we do not need and is not useful for text mining. We need to clean it up. We remove all numbers, convert text to lowercase, remove punctuation and stopwords, in this case english.
@@ -243,6 +256,8 @@ Let's have a look to our first document.
 ```r
 #inspect(docs[1])
 ```
+
+I have hash it because wordpress has problems with editing the post.
 
 We are ready with preprosessing the data and turn the document back as plain text documents.
 
