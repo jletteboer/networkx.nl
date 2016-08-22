@@ -95,7 +95,7 @@ deck
 First, create a histogram depicting the relative frequencies of the card values.
 
 ```r
-ggplot(deck, aes(x=values)) + 
+ggplot(deck, aes(x=value)) + 
     geom_histogram(binwidth=1, origin=-0.5, col="white", fill="royalblue", alpha=0.5) + 
     labs(x="Value", y="Count", title="Card Value Histogram") +
     scale_x_continuous(breaks = seq(1,10)) +
@@ -127,7 +127,7 @@ summary(samples)
 ##  Min.   : 3.00  
 ##  1st Qu.:16.00  
 ##  Median :20.00  
-##  Mean   :19.56  
+##  Mean   :19.61  
 ##  3rd Qu.:23.00  
 ##  Max.   :30.00
 ```
@@ -155,7 +155,7 @@ quantile(samples$value, probs = seq(.05, .95, 0.9))
 
 ```
 ##  5% 95% 
-##  10  28
+##  11  28
 ```
 
 #### b. Approximate probability that you will get a draw value of at least 20?
@@ -173,7 +173,7 @@ z
 ```
 
 ```
-## [1] 0.08241152
+## [1] 0.073748
 ```
 
 We could lookup the value in the [Z score table](https://s3.amazonaws.com/udacity-hosted-downloads/ZTable.jpg), but I want to calculate it.
@@ -189,7 +189,7 @@ cdf
 ```
 
 ```
-## [1] 0.4671597
+## [1] 0.4706055
 ```
 
-As we can see the probability that we will get a draw value of at least 20 is **0.4671597**.
+As we can see the probability that we will get a draw value of at least 20 is **0.4706055**.

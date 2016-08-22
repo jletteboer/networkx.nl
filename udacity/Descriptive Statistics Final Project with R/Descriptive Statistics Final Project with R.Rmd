@@ -42,7 +42,7 @@ deck
 ### 1. Create a histogram depicting the relative frequencies of the card values
 First, create a histogram depicting the relative frequencies of the card values.
 ```{r}
-ggplot(deck, aes(x=values)) + 
+ggplot(deck, aes(x=value)) + 
     geom_histogram(binwidth=1, origin=-0.5, col="white", fill="royalblue", alpha=0.5) + 
     labs(x="Value", y="Count", title="Card Value Histogram") +
     scale_x_continuous(breaks = seq(1,10)) +
