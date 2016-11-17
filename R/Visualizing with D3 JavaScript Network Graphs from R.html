@@ -1,0 +1,222 @@
+<p>Hi all, I want to visualize some of my courses I&#39;ve followed by year. I have found <a href="http://christophergandrud.github.io/networkD3/">D3 JavaScript Network Graphs from R</a> with some nice and cool visualizations.</p>
+
+<p>In this post I will describe how I transform my data for creating the RadialNetwork and DiagonalNetwork visualizations.</p>
+
+<h1>Loading and have a look at the data</h1>
+
+<p>First off all I had a Excel file with some of my followed some courses since 2013. I&#39;ve saved it to a csv file <code>courses.csv</code>. Let have a look of the file.</p>
+
+<pre class="lang:r decode:true">setwd(&quot;~/Documents&quot;)
+courses &lt;- read.csv(&quot;courses.csv&quot;, sep=&quot;;&quot;,header=TRUE, stringsAsFactors = FALSE)
+head(courses)
+</pre>
+
+<pre><code>##   year    month                                         course     type
+## 1 2013 December  Excel 2007-2010 Expert: Analyse en rapportage in-class
+## 2 2014  Januari                   Business Analysis (Vijfhart) in-class
+## 3 2014 November      Business Intelligence &amp; Analytics (Cibit) in-class
+## 4 2014 December         Big Data Fundamentals (IIR Trainingen) in-class
+## 5 2015  Januari Datameer Big Data Certified Analyst (Datameer) in-class
+## 6 2015 Februari The Python programming language (AT Computing) in-class
+</code></pre>
+
+<pre class="lang:r decode:true">str(courses)
+</pre>
+
+<pre><code>## &#39;data.frame&#39;:    25 obs. of  4 variables:
+##  $ year  : int  2013 2014 2014 2014 2015 2015 2015 2015 2015 2015 ...
+##  $ month : chr  &quot;December&quot; &quot;Januari&quot; &quot;November&quot; &quot;December&quot; ...
+##  $ course: chr  &quot;Excel 2007-2010 Expert: Analyse en rapportage&quot; &quot;Business Analysis (Vijfhart)&quot; &quot;Business Intelligence &amp; Analytics (Cibit)&quot; &quot;Big Data Fundamentals (IIR Trainingen)&quot; ...
+##  $ type  : chr  &quot;in-class&quot; &quot;in-class&quot; &quot;in-class&quot; &quot;in-class&quot; ...
+</code></pre>
+
+<p>Oke, we have a data.frame of 25 observation of 4 variables (year, month, course and type). Since both visualizations are based on tree diagrams we need to create a tree from my <code>data.frame</code>. After some searching on the internet I&#39;ve found the package <a href="https://cran.r-project.org/web/packages/data.tree/vignettes/data.tree.html">data.tree</a>. In this package there is a paragraph called &ldquo;Create a tree from a <code>data.frame</code>&rdquo;.</p>
+
+<h1>Let&#39;s start to create a tree from my courses</h1>
+
+<p>Load the library.</p>
+
+<pre class="lang:r decode:true">library(data.tree)
+</pre>
+
+<p>The <code>data.frame</code> is a table and each row is a leaf. We create a path from root to leaf and save that into the <code>data.frame</code> as new column <code>pathString</code>.
+Define the hierarchy (Year|Month|Type|Course)</p>
+
+<pre class="lang:r decode:true">courses$pathString &lt;- paste(&quot;courses&quot;,courses$year,courses$month,courses$type,courses$course, sep= &quot;|&quot;)
+head(courses)
+</pre>
+
+<pre><code>##   year    month                                         course     type
+## 1 2013 December  Excel 2007-2010 Expert: Analyse en rapportage in-class
+## 2 2014  Januari                   Business Analysis (Vijfhart) in-class
+## 3 2014 November      Business Intelligence &amp; Analytics (Cibit) in-class
+## 4 2014 December         Big Data Fundamentals (IIR Trainingen) in-class
+## 5 2015  Januari Datameer Big Data Certified Analyst (Datameer) in-class
+## 6 2015 Februari The Python programming language (AT Computing) in-class
+##                                                                      pathString
+## 1  courses|2013|December|in-class|Excel 2007-2010 Expert: Analyse en rapportage
+## 2                    courses|2014|Januari|in-class|Business Analysis (Vijfhart)
+## 3      courses|2014|November|in-class|Business Intelligence &amp; Analytics (Cibit)
+## 4         courses|2014|December|in-class|Big Data Fundamentals (IIR Trainingen)
+## 5  courses|2015|Januari|in-class|Datameer Big Data Certified Analyst (Datameer)
+## 6 courses|2015|Februari|in-class|The Python programming language (AT Computing)
+</code></pre>
+
+<p>After we have created the <code>pathString</code> we need to convert it to a node, with the package <code>data.tree</code> is that very easy.</p>
+
+<pre class="lang:r decode:true">coursesTree &lt;- as.Node(courses, pathDelimiter = &quot;|&quot;)
+coursesTree
+</pre>
+
+<pre><code>##                                                                 levelName
+## 1  courses                                                               
+## 2   ¦--2013                                                              
+## 3   ¦   °--December                                                      
+## 4   ¦       °--in-class                                                  
+## 5   ¦           °--Excel 2007-2010 Expert: Analyse en rapportage         
+## 6   ¦--2014                                                              
+## 7   ¦   ¦--Januari                                                       
+## 8   ¦   ¦   °--in-class                                                  
+## 9   ¦   ¦       °--Business Analysis (Vijfhart)                          
+## 10  ¦   ¦--November                                                      
+## 11  ¦   ¦   °--in-class                                                  
+## 12  ¦   ¦       °--Business Intelligence &amp; Analytics (Cibit)             
+## 13  ¦   °--December                                                      
+## 14  ¦       °--in-class                                                  
+## 15  ¦           °--Big Data Fundamentals (IIR Trainingen)                
+## 16  ¦--2015                                                              
+## 17  ¦   ¦--Januari                                                       
+## 18  ¦   ¦   °--in-class                                                  
+## 19  ¦   ¦       °--Datameer Big Data Certified Analyst (Datameer)        
+## 20  ¦   ¦--Februari                                                      
+## 21  ¦   ¦   °--in-class                                                  
+## 22  ¦   ¦       °--The Python programming language (AT Computing)        
+## 23  ¦   ¦--May                                                           
+## 24  ¦   ¦   °--online                                                    
+## 25  ¦   ¦       ¦--The Data Scientist&#39;s Toolbox (Coursera)               
+## 26  ¦   ¦       °--Quick start to JavaScript Volume 1,2 &amp; 3 (Pluralsight)
+## 27  ¦   ¦--June                                                          
+## 28  ¦   ¦   °--online                                                    
+## 29  ¦   ¦       ¦--R Programming (Cousera)                               
+## 30  ¦   ¦       ¦--Big Data Analytics with Tableau (Pluralsight)         
+## 31  ¦   ¦       ¦--Data Analysis Fundamentals with Tableau (Pluralsight) 
+## 32  ¦   ¦       °--Getting and Cleaning Data (Coursera)                  
+## 33  ¦   ¦--November                                                      
+## 34  ¦   ¦   ¦--online                                                    
+## 35  ¦   ¦   ¦   °--Exploratory Data Analysis (Coursera)                  
+## 36  ¦   ¦   °--in-class                                                  
+## 37  ¦   ¦       °--Applied Statistics and data analysis (Tridata)        
+## 38  ¦   °--December                                                      
+## 39  ¦       ¦--online                                                    
+## 40  ¦       ¦   ¦--Reproducible Research (Coursera)                      
+## 41  ¦       ¦   °--R Programming (Data-Mania)                            
+## 42  ¦       °--in-class                                                  
+## 43  ¦           °--Scrum Master                                          
+## 44  °--2016                                                              
+## 45      ¦--Januari                                                       
+## 46      ¦   ¦--online                                                    
+## 47      ¦   ¦   °--Statistical Inference (Coursera)                      
+## 48      ¦   °--in-class                                                  
+## 49      ¦       ¦--Using Splunk 6 (Splunk)                               
+## 50      ¦       ¦--Searching and Reporting with Splunk 6 (Splunk)        
+## 51      ¦       ¦--Creating Splunk 6.3 Knowledge Objects (Splunk)        
+## 52      ¦       °--Splunk Tutorial (Splunk)                              
+## 53      ¦--April                                                         
+## 54      ¦   °--in-class                                                  
+## 55      ¦       °--JavaScript (Vijfhart)                                 
+## 56      °--August                                                        
+## 57          °--online                                                    
+## 58              ¦--JavaScript (Codecademy)                               
+## 59              °--Intro to Descriptive Statistics (Udemy)
+</code></pre>
+
+<p>The last thing we need is a list-to-list structure before we can plot the two networkD3 visulizatios</p>
+
+<pre class="lang:r decode:true">coursesTreeList &lt;- ToListExplicit(coursesTree, unname =TRUE)
+</pre>
+
+<h1>Plot the two visulizatios</h1>
+
+<pre class="lang:r decode:true">library(networkD3)
+diagonalNetwork(List=coursesTreeList, 
+                fontSize = 13, 
+                fontFamily = &quot;OpenSans-Light&quot;, 
+                nodeStroke = &quot;orange&quot;,
+                linkColour = &quot;#AAA&quot;,
+                opacity = 0.9)
+</pre>
+
+<pre><code>## PhantomJS not found. You can install it with webshot::install_phantomjs(). If it is installed, please make sure the phantomjs executable can be found via the PATH variable.
+</code></pre>
+
+<pre><code>## Warning in normalizePath(f2): path[1]=&quot;./webshot103d66e17fc0.png&quot;: No such
+## file or directory
+</code></pre>
+
+<pre><code>## Warning in file(con, &quot;rb&quot;): cannot open file &#39;./webshot103d66e17fc0.png&#39;:
+## No such file or directory
+</code></pre>
+
+<pre><code>## Error in file(con, &quot;rb&quot;): cannot open the connection
+</code></pre>
+
+<p>pic</p>
+
+<pre class="lang:r decode:true">radialNetwork(List=coursesTreeList, 
+                fontSize = 13,
+                fontFamily = &quot;OpenSans-Light&quot;,
+                nodeStroke = &quot;orange&quot;,
+                opacity = 0.9)
+</pre>
+
+<pre><code>## PhantomJS not found. You can install it with webshot::install_phantomjs(). If it is installed, please make sure the phantomjs executable can be found via the PATH variable.
+</code></pre>
+
+<pre><code>## Warning in normalizePath(f2): path[1]=&quot;./webshot103d7bfc245c.png&quot;: No such
+## file or directory
+</code></pre>
+
+<pre><code>## Warning in file(con, &quot;rb&quot;): cannot open file &#39;./webshot103d7bfc245c.png&#39;:
+## No such file or directory
+</code></pre>
+
+<pre><code>## Error in file(con, &quot;rb&quot;): cannot open the connection
+</code></pre>
+
+<p>pic</p>
+
+<p>Well that look nice!! This package is great!!</p>
+
+<p>This code can also be find on my <a href="https://github.com/jletteboer/networkx.nl/">GitHub</a></p>
+
+<h2>SessionInfo</h2>
+
+<pre class="lang:r decode:true">sessionInfo()
+</pre>
+
+<pre><code>## R version 3.3.2 (2016-10-31)
+## Platform: x86_64-apple-darwin13.4.0 (64-bit)
+## Running under: macOS Sierra 10.12.1
+## 
+## locale:
+## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+## [1] magrittr_1.5     RWordPress_0.2-3 networkD3_0.2.13 data.tree_0.4.0 
+## [5] knitr_1.15      
+## 
+## loaded via a namespace (and not attached):
+##  [1] igraph_1.0.1     Rcpp_0.12.8      rstudioapi_0.6   devtools_1.12.0 
+##  [5] munsell_0.4.3    colorspace_1.3-0 R6_2.2.0         httr_1.2.1      
+##  [9] stringr_1.1.0    plyr_1.8.4       tools_3.3.2      visNetwork_1.0.2
+## [13] webshot_0.3.2    git2r_0.15.0     withr_1.0.2      influenceR_0.1.0
+## [17] DiagrammeR_0.8.4 htmltools_0.3.5  yaml_2.1.14      digest_0.6.10   
+## [21] assertthat_0.1   tibble_1.2       bitops_1.0-6     htmlwidgets_0.8 
+## [25] RCurl_1.95-4.8   curl_2.2         memoise_1.0.0    evaluate_0.10   
+## [29] rmarkdown_1.1    stringi_1.1.2    XMLRPC_0.3-0     scales_0.4.1    
+## [33] XML_3.98-1.5     jsonlite_1.1     markdown_0.7.7
+</code></pre>
+

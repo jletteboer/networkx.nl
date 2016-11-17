@@ -1,0 +1,77 @@
+---
+title: "Visualizing with D3 JavaScript Network Graphs from R"
+author: "John Letteboer"
+date: '`r Sys.Date()`'
+output:
+  html_document:
+    fig_caption: yes
+    highlight: haddock
+    keep_md: yes
+    theme: cosmo
+---
+
+Hi all, I want to visualize some of my courses I've followed by year. I have found [D3 JavaScript Network Graphs from R](http://christophergandrud.github.io/networkD3/) with some nice and cool visualizations.
+
+In this post I will describe how I transform my data for creating the RadialNetwork and DiagonalNetwork visualizations.
+
+# Loading and have a look at the data
+First off all I had a Excel file with some of my followed some courses since 2013. I've saved it to a csv file ```courses.csv```. Let have a look of the file.
+
+```{r}
+setwd("~/Documents")
+courses <- read.csv("courses.csv", sep=";",header=TRUE, stringsAsFactors = FALSE)
+head(courses)
+str(courses)
+```
+
+Oke, we have a data.frame of 25 observation of 4 variables (year, month, course and type). Since both visualizations are based on tree diagrams we need to create a tree from my ```data.frame```. After some searching on the internet I've found the package [data.tree](https://cran.r-project.org/web/packages/data.tree/vignettes/data.tree.html). In this package there is a paragraph called "Create a tree from a ```data.frame```".
+
+# Let's start to create a tree from my courses
+Load the library.
+```{r}
+library(data.tree)
+```
+
+The ```data.frame``` is a table and each row is a leaf. We create a path from root to leaf and save that into the ```data.frame``` as new column ```pathString```.
+Define the hierarchy (Year|Month|Type|Course)
+```{r}
+courses$pathString <- paste("courses",courses$year,courses$month,courses$type,courses$course, sep= "|")
+head(courses)
+```
+
+After we have created the ```pathString``` we need to convert it to a node, with the package ```data.tree``` is that very easy.
+```{r encoding = 'UTF-8'}
+coursesTree <- as.Node(courses, pathDelimiter = "|")
+coursesTree
+```
+
+The last thing we need is a list-to-list structure before we can plot the two networkD3 visulizatios
+```{r}
+coursesTreeList <- ToListExplicit(coursesTree, unname =TRUE)
+```
+
+# Plot the two visulizatios
+```{r fig.width=9, fig.height=8}
+library(networkD3)
+diagonalNetwork(List=coursesTreeList, 
+                fontSize = 13, 
+                fontFamily = "OpenSans-Light", 
+                nodeStroke = "orange",
+                linkColour = "#AAA",
+                opacity = 0.9)
+
+radialNetwork(List=coursesTreeList, 
+                fontSize = 13,
+                fontFamily = "OpenSans-Light",
+                nodeStroke = "orange",
+                opacity = 0.9)
+```
+
+Well that look nice!! This package is great!!
+
+This code can also be find on my [GitHub](https://github.com/jletteboer/networkx.nl/)
+
+## SessionInfo
+```{r}
+sessionInfo()
+```
