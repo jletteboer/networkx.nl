@@ -1,0 +1,33 @@
+.skin-yellow .sidebar-menu>li.active>a,
+.skin-yellow .sidebar-menu>li:hover>a {
+    border-left-color: #ee7300;
+}
+
+.skin-yellow .main-header .logo {
+    background: #ee7300;
+}
+
+.skin-yellow .main-header .navbar {
+    background: #ee7300;
+}
+
+.box.box-solid.box-success>.box-header {
+    /*color: #fff;*/
+    background: #ee7300
+}
+
+.box.box-success {
+    /*color: #fff;*/
+    /*background: #ee7300;*/
+    border-bottom-color: #ee7300;
+    border-left-color: #ee7300;
+    border-right-color: #ee7300;
+    border-top-color: #ee7300;
+}
+
+.box.box-solid.box-success {
+    border-bottom-color: #ee7300;
+    border-left-color: #ee7300;
+    border-right-color: #ee7300;
+    border-top-color: #ee7300;
+}
